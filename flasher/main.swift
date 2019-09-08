@@ -8,5 +8,14 @@
 
 import Foundation
 
-print("Hello, World!")
+let arguments = Array(CommandLine.arguments.dropFirst())
+var parser = Command(usage: "<command> ...",
+                     overview: "Write an image to a storage device")
 
+do {
+    try parser.run(with: arguments)
+}
+catch let error as CommandError {
+    error.print()
+    exit(EXIT_FAILURE)
+}

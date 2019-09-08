@@ -3,11 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		EBD9DD4F2325081C000B6867 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD9DD4E2325081C000B6867 /* main.swift */; };
+		EBD9DD5723250B52000B6867 /* SPMUtility in Frameworks */ = {isa = PBXBuildFile; productRef = EBD9DD5623250B52000B6867 /* SPMUtility */; };
+		EBD9DD5923251A7D000B6867 /* CommandProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD9DD5823251A7D000B6867 /* CommandProtocol.swift */; };
+		EBD9DD5B23251B4C000B6867 /* Command.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD9DD5A23251B4C000B6867 /* Command.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +28,8 @@
 /* Begin PBXFileReference section */
 		EBD9DD4B2325081C000B6867 /* flasher */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = flasher; sourceTree = BUILT_PRODUCTS_DIR; };
 		EBD9DD4E2325081C000B6867 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		EBD9DD5823251A7D000B6867 /* CommandProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandProtocol.swift; sourceTree = "<group>"; };
+		EBD9DD5A23251B4C000B6867 /* Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Command.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EBD9DD5723250B52000B6867 /* SPMUtility in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,6 +64,8 @@
 			isa = PBXGroup;
 			children = (
 				EBD9DD4E2325081C000B6867 /* main.swift */,
+				EBD9DD5823251A7D000B6867 /* CommandProtocol.swift */,
+				EBD9DD5A23251B4C000B6867 /* Command.swift */,
 			);
 			path = flasher;
 			sourceTree = "<group>";
@@ -78,6 +86,9 @@
 			dependencies = (
 			);
 			name = flasher;
+			packageProductDependencies = (
+				EBD9DD5623250B52000B6867 /* SPMUtility */,
+			);
 			productName = flasher;
 			productReference = EBD9DD4B2325081C000B6867 /* flasher */;
 			productType = "com.apple.product-type.tool";
@@ -106,6 +117,9 @@
 				Base,
 			);
 			mainGroup = EBD9DD422325081C000B6867;
+			packageReferences = (
+				EBD9DD5523250B52000B6867 /* XCRemoteSwiftPackageReference "swift-package-manager" */,
+			);
 			productRefGroup = EBD9DD4C2325081C000B6867 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -120,7 +134,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EBD9DD5B23251B4C000B6867 /* Command.swift in Sources */,
 				EBD9DD4F2325081C000B6867 /* main.swift in Sources */,
+				EBD9DD5923251A7D000B6867 /* CommandProtocol.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -284,6 +300,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		EBD9DD5523250B52000B6867 /* XCRemoteSwiftPackageReference "swift-package-manager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-package-manager.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.4.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EBD9DD5623250B52000B6867 /* SPMUtility */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EBD9DD5523250B52000B6867 /* XCRemoteSwiftPackageReference "swift-package-manager" */;
+			productName = SPMUtility;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = EBD9DD432325081C000B6867 /* Project object */;
 }
