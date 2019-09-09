@@ -13,6 +13,7 @@ var parser = Command(usage: "<command> ...",
                      overview: "Write an image to a storage device")
 
 parser.add(command: ListCommand.self)
+parser.add(command: WriteCommand.self)
 
 do {
     try parser.run(with: arguments)
