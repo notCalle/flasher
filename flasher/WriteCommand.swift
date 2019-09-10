@@ -10,30 +10,6 @@ import Foundation
 import Basic
 import SPMUtility
 
-enum WriteCommandError: Error {
-    case notImplemented
-    case notExternal(String)
-    case notPhysical(String)
-    case notRemovable(String)
-    case notWritable(String)
-}
-extension WriteCommandError: CustomStringConvertible {
-    public var description: String {
-        switch self {
-        case .notImplemented:
-            return "Not Implemented"
-        case .notExternal(let disk):
-            return "\"" + disk + "\" is not external"
-        case .notPhysical(let disk):
-            return "\"" + disk + "\" is not physical"
-        case .notRemovable(let disk):
-            return "\"" + disk + "\" is not removable"
-        case .notWritable(let disk):
-            return "\"" + disk + "\" is not writable"
-        }
-    }
-}
-
 struct WriteCommand: CommandProtocol {
     let command = "write"
     let overview = "Write an image to a removable storage device"
@@ -57,33 +33,12 @@ struct WriteCommand: CommandProtocol {
     }
 
     public func run(with arguments: ArgumentParser.Result) throws {
-        let disk = arguments.get(device)!
-        try validate(disk: disk, force: arguments.get(force) ?? false)
+        let controller = try DeviceController(for: arguments.get(device)!,
+                                              force: arguments.get(force) ?? false)
+        let image_path = AbsolutePath(arguments.get(image)!,
+                                      relativeTo: localFileSystem.currentWorkingDirectory!)
 
-        let auth = try DeviceAccessAuthorization(for: .writing(disk))
-        try auth.withAuth({_ in
-            throw WriteCommandError.notImplemented
-        })
-    }
-
-    private func validate(disk: String, force: Bool = false) throws {
-        let info = try DiskInfo(for: disk)
-
-        // Safeguard checks, ignored if forced
-        if !force {
-            if info.internal {
-                throw WriteCommandError.notExternal(disk)
-            }
-            if !info.removable {
-                throw WriteCommandError.notRemovable(disk)
-            }
-            if info.virtualOrPhysical != .physical {
-                throw WriteCommandError.notPhysical(disk)
-            }
-        }
-
-        if !info.writable {
-            throw WriteCommandError.notWritable(disk)
-        }
+        try controller.write(image: image_path,
+                             verify: arguments.get(verify) ?? false)
     }
 }
