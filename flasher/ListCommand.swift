@@ -26,25 +26,12 @@ struct ListCommand: CommandProtocol {
     func run(with arguments: ArgumentParser.Result) throws {
         let disks = try getDiskIds()
         try disks.forEach({disk in
-            let diskInfo = try getDiskInfo(for: disk)
-            guard let writable = diskInfo["Writable"] as? Bool else {
-                throw ListCommandError.keyError("Writable")
-            }
-            guard let removable = diskInfo["Removable"] as? Bool else {
-                throw ListCommandError.keyError("Removable")
-            }
+            let info = try DiskInfo(for: disk)
 
-            if !removable || !writable { return }
+            if !info.removable || !info.writable { return }
 
-            guard let mediaName = diskInfo["MediaName"] as? String else {
-                throw ListCommandError.keyError("MediaName")
-            }
-            guard let size = diskInfo["TotalSize"] as? Int64 else {
-                throw ListCommandError.keyError("TotalSize")
-            }
-
-            stdoutStream <<< disk <<< " \"" <<< mediaName <<< "\" ("
-            stdoutStream <<< ByteCountFormatter.string(fromByteCount: size,
+            stdoutStream <<< disk <<< " \"" <<< info.mediaName <<< "\" ("
+            stdoutStream <<< ByteCountFormatter.string(fromByteCount: info.totalSize,
                                                        countStyle: .file)
             stdoutStream <<< ")\n"
         })
@@ -70,15 +57,5 @@ struct ListCommand: CommandProtocol {
         })
     }
 
-    private func getDiskInfo(for disk: String) throws -> [String:Any] {
-        let output = try Process.checkNonZeroExit(arguments: [
-            "/usr/sbin/diskutil", "info", "-plist", disk
-        ])
-        let plist = output.propertyList()
-        guard let dict = plist as? [String:Any] else {
-            throw ListCommandError.plistTypeError(plist)
-        }
-        return dict
-    }
 }
 

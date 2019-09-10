@@ -7,8 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EB84993F2326F7EA003D48CA /* DeviceAccessAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB84993E2326F7EA003D48CA /* DeviceAccessAuthorization.swift */; };
 		EB84993D23264100003D48CA /* WriteCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB84993C23264100003D48CA /* WriteCommand.swift */; };
+		EB84993F2326F7EA003D48CA /* DeviceAccessAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB84993E2326F7EA003D48CA /* DeviceAccessAuthorization.swift */; };
+		EB849941232823B8003D48CA /* DiskInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB849940232823B8003D48CA /* DiskInfo.swift */; };
 		EBD9DD4F2325081C000B6867 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD9DD4E2325081C000B6867 /* main.swift */; };
 		EBD9DD5723250B52000B6867 /* SPMUtility in Frameworks */ = {isa = PBXBuildFile; productRef = EBD9DD5623250B52000B6867 /* SPMUtility */; };
 		EBD9DD5923251A7D000B6867 /* CommandProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD9DD5823251A7D000B6867 /* CommandProtocol.swift */; };
@@ -29,8 +30,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		EB84993E2326F7EA003D48CA /* DeviceAccessAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAccessAuthorization.swift; sourceTree = "<group>"; };
 		EB84993C23264100003D48CA /* WriteCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriteCommand.swift; sourceTree = "<group>"; };
+		EB84993E2326F7EA003D48CA /* DeviceAccessAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAccessAuthorization.swift; sourceTree = "<group>"; };
+		EB849940232823B8003D48CA /* DiskInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskInfo.swift; sourceTree = "<group>"; };
 		EBD9DD4B2325081C000B6867 /* flasher */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = flasher; sourceTree = BUILT_PRODUCTS_DIR; };
 		EBD9DD4E2325081C000B6867 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		EBD9DD5823251A7D000B6867 /* CommandProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandProtocol.swift; sourceTree = "<group>"; };
@@ -75,6 +77,7 @@
 				EBD9DD5C232543E1000B6867 /* ListCommand.swift */,
 				EBD9DD5823251A7D000B6867 /* CommandProtocol.swift */,
 				EBD9DD5A23251B4C000B6867 /* Command.swift */,
+				EB849940232823B8003D48CA /* DiskInfo.swift */,
 			);
 			path = flasher;
 			sourceTree = "<group>";
@@ -149,6 +152,7 @@
 				EBD9DD4F2325081C000B6867 /* main.swift in Sources */,
 				EBD9DD5923251A7D000B6867 /* CommandProtocol.swift in Sources */,
 				EBD9DD5D232543E1000B6867 /* ListCommand.swift in Sources */,
+				EB849941232823B8003D48CA /* DiskInfo.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
