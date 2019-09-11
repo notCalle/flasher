@@ -15,6 +15,8 @@ enum DeviceControllerError: Error {
     case notPhysical(String)
     case notRemovable(String)
     case notWritable(String)
+    case errno(errno_t)
+    case tooSmall(String, Int64, Int64)
 }
 extension DeviceControllerError: CustomStringConvertible {
     public var description: String {
@@ -29,40 +31,71 @@ extension DeviceControllerError: CustomStringConvertible {
             return "\"" + disk + "\" is not removable"
         case .notWritable(let disk):
             return "\"" + disk + "\" is not writable"
+        case.errno(let err):
+            return "errno(" + String(err) + ")"
+        case .tooSmall(let disk, let dsize, let isize):
+            let diskSize = ByteCountFormatter.string(fromByteCount: dsize,
+                                                     countStyle: .file)
+            let imageSize = ByteCountFormatter.string(fromByteCount: isize,
+                                                      countStyle: .file)
+
+            return "\(disk) is too small (\(diskSize)) for image (\(imageSize))"
         }
     }
 }
 
 struct DeviceController {
     let disk: String
+    let info: DiskInfo
 
     init(for device: String, force: Bool = false) throws {
         disk = device
+        info = try DiskInfo(for: disk)
+
         try validate(forced: force)
+        try umountDisk()
     }
 
     public func write(image: AbsolutePath, verify: Bool = false) throws {
+        let fileManager = FileManager()
+        let fileAttr = try fileManager.attributesOfItem(atPath: image.pathString)
+        let fileSize = fileAttr[.size] as! Int64
+
+        if info.totalSize < fileSize {
+            throw DeviceControllerError.tooSmall(disk, info.totalSize, fileSize)
+        }
+
         let size = 1024*1024
-        let input = image.pathString.withCString({path in
-            return open(path, k)
-
-        })
-        let input = try Data(contentsOf: image.asURL, options: .alwaysMapped)
-        let size = input.count
-
-        stderrStream <<< input
-        stderrStream.flush()
+        guard let inputFH = FileHandle(forReadingAtPath: image.pathString) else {
+            throw DeviceControllerError.errno(errno)
+        }
 
         let auth = try DeviceAccessAuthorization(for: .writing(disk))
-        try auth.withAuth({_ in
-            let output = AbsolutePath("/dev/" + disk)
-            try input.write(to: output.asURL)
-        })
+        let output = AbsolutePath("/dev/r" + disk)
+        let outputStream = try AuthorizedOutputByteStream(output, with: auth)
+
+        let startTime = Date()
+        var copySoFar: Int64 = 0
+        var buffer = inputFH.readData(ofLength: size)
+        while buffer.count > 0 {
+            try outputStream.write(buffer)
+            buffer = inputFH.readData(ofLength: size)
+            let elapsedTime = DateInterval(start: startTime, end: Date())
+            copySoFar += Int64(buffer.count)
+            let writeSpeed = Measurement<UnitInformationStorage>(value: Double(copySoFar)/elapsedTime.duration, unit: .bytes)
+            let percent = Double(copySoFar) / Double(fileSize)
+            let bar = String(repeating: "-", count: Int(percent * 50))
+            let filler = String(repeating: " ", count: 50)
+
+            stderrStream <<< "\r[\(filler)]"
+            stderrStream <<< " "
+            stderrStream <<< ByteCountFormatter().string(from: writeSpeed)
+            stderrStream <<< "/s   \r[\(bar)"
+            stderrStream.flush()
+        }
     }
 
     private func validate(forced: Bool) throws {
-        let info = try DiskInfo(for: disk)
-
         // Safeguard checks, ignored if forced
         if !forced {
             if info.internal {
@@ -79,5 +112,11 @@ struct DeviceController {
         if !info.writable {
             throw DeviceControllerError.notWritable(disk)
         }
+    }
+
+    private func umountDisk() throws {
+        try Process.checkNonZeroExit(arguments: [
+            "diskutil", "umountDisk", disk
+        ])
     }
 }

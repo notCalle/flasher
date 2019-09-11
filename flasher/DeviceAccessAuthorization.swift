@@ -30,39 +30,18 @@ extension AuthorizedDeviceAction: CustomStringConvertible {
     public var description: String {
         switch self {
         case .reading(let device):
-            return "sys.openfile.read./dev/" + device
+            return "sys.openfile.read./dev/r" + device
         case .writing(let device):
-            return "sys.openfile.readwrite./dev/" + device
+            return "sys.openfile.readwrite./dev/r" + device
         }
     }
 }
 
-struct DeviceAccessAuthorization {
+final class DeviceAccessAuthorization {
     let action: AuthorizedDeviceAction
+    let authRef: AuthorizationRef
 
     init(for action: AuthorizedDeviceAction) throws {
-        self.action = action
-    }
-
-    public func withAuth(_ method: (AuthorizationRef) throws -> Void) throws
-    {
-        let authRef = try authorize()
-        defer {
-            AuthorizationFree(authRef, [.destroyRights])
-        }
-        try method(authRef)
-    }
-
-    public func withExtAuth(_ method: (AuthorizationExternalForm) throws -> Void) throws
-    {
-        try withAuth({authRef in
-            let extAuth = try externalAuthorization(authRef)
-            try method(extAuth)
-        })
-    }
-
-    private func authorize() throws -> AuthorizationRef
-    {
         var authRef: AuthorizationRef?
         var items = [AuthorizationItem(name: String(describing: action),
                                        valueLength: 0, value: nil,
@@ -78,11 +57,16 @@ struct DeviceAccessAuthorization {
         if status != errAuthorizationSuccess {
             throw DeviceAuthorizationError.failure(status)
         }
-        return authRef!
+
+        self.action = action
+        self.authRef = authRef!
     }
 
-    private func externalAuthorization(_ authRef: AuthorizationRef) throws
-        -> AuthorizationExternalForm
+    deinit {
+        AuthorizationFree(authRef, [.destroyRights])
+    }
+
+    func externalAuthorization() throws -> AuthorizationExternalForm
     {
         var extAuthRef = AuthorizationExternalForm()
         let status = AuthorizationMakeExternalForm(authRef, &extAuthRef)
