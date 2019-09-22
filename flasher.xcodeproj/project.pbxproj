@@ -7,11 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EB2AB2B02337783200C1FCD7 /* recv_fd.c in Sources */ = {isa = PBXBuildFile; fileRef = EB2AB2AF2337783200C1FCD7 /* recv_fd.c */; };
+		EB625031232B84EC0026BB04 /* FileHandleAPUE.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB625030232B84EC0026BB04 /* FileHandleAPUE.swift */; };
+		EB625033232B876C0026BB04 /* AuthOpen.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB625032232B876C0026BB04 /* AuthOpen.swift */; };
 		EB84993D23264100003D48CA /* WriteCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB84993C23264100003D48CA /* WriteCommand.swift */; };
-		EB84993F2326F7EA003D48CA /* DeviceAccessAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB84993E2326F7EA003D48CA /* DeviceAccessAuthorization.swift */; };
+		EB84993F2326F7EA003D48CA /* FileAccessAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB84993E2326F7EA003D48CA /* FileAccessAuthorization.swift */; };
 		EB849941232823B8003D48CA /* DiskInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB849940232823B8003D48CA /* DiskInfo.swift */; };
 		EB8499432328319C003D48CA /* DeviceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB8499422328319C003D48CA /* DeviceController.swift */; };
-		EB8499452328DFFB003D48CA /* AuthorizedByteStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB8499442328DFFB003D48CA /* AuthorizedByteStream.swift */; };
 		EBD9DD4F2325081C000B6867 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD9DD4E2325081C000B6867 /* main.swift */; };
 		EBD9DD5723250B52000B6867 /* SPMUtility in Frameworks */ = {isa = PBXBuildFile; productRef = EBD9DD5623250B52000B6867 /* SPMUtility */; };
 		EBD9DD5923251A7D000B6867 /* CommandProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD9DD5823251A7D000B6867 /* CommandProtocol.swift */; };
@@ -32,11 +34,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		EB2AB2AD2337783200C1FCD7 /* flasher-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "flasher-Bridging-Header.h"; sourceTree = "<group>"; };
+		EB2AB2AE2337783200C1FCD7 /* recv_fd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = recv_fd.h; path = apue/recv_fd.h; sourceTree = "<group>"; };
+		EB2AB2AF2337783200C1FCD7 /* recv_fd.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = recv_fd.c; path = apue/recv_fd.c; sourceTree = "<group>"; };
+		EB625030232B84EC0026BB04 /* FileHandleAPUE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileHandleAPUE.swift; sourceTree = "<group>"; };
+		EB625032232B876C0026BB04 /* AuthOpen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthOpen.swift; sourceTree = "<group>"; };
 		EB84993C23264100003D48CA /* WriteCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriteCommand.swift; sourceTree = "<group>"; };
-		EB84993E2326F7EA003D48CA /* DeviceAccessAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAccessAuthorization.swift; sourceTree = "<group>"; };
+		EB84993E2326F7EA003D48CA /* FileAccessAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileAccessAuthorization.swift; sourceTree = "<group>"; };
 		EB849940232823B8003D48CA /* DiskInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskInfo.swift; sourceTree = "<group>"; };
 		EB8499422328319C003D48CA /* DeviceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceController.swift; sourceTree = "<group>"; };
-		EB8499442328DFFB003D48CA /* AuthorizedByteStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthorizedByteStream.swift; sourceTree = "<group>"; };
 		EBD9DD4B2325081C000B6867 /* flasher */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = flasher; sourceTree = BUILT_PRODUCTS_DIR; };
 		EBD9DD4E2325081C000B6867 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		EBD9DD5823251A7D000B6867 /* CommandProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandProtocol.swift; sourceTree = "<group>"; };
@@ -56,11 +62,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EB2AB2B22337787A00C1FCD7 /* apue */ = {
+			isa = PBXGroup;
+			children = (
+				EB2AB2AE2337783200C1FCD7 /* recv_fd.h */,
+				EB2AB2AF2337783200C1FCD7 /* recv_fd.c */,
+			);
+			name = apue;
+			sourceTree = "<group>";
+		};
 		EBD9DD422325081C000B6867 = {
 			isa = PBXGroup;
 			children = (
+				EB2AB2B22337787A00C1FCD7 /* apue */,
 				EBD9DD4D2325081C000B6867 /* flasher */,
 				EBD9DD4C2325081C000B6867 /* Products */,
+				EB2AB2AD2337783200C1FCD7 /* flasher-Bridging-Header.h */,
 			);
 			sourceTree = "<group>";
 		};
@@ -76,14 +93,15 @@
 			isa = PBXGroup;
 			children = (
 				EBD9DD4E2325081C000B6867 /* main.swift */,
-				EB84993E2326F7EA003D48CA /* DeviceAccessAuthorization.swift */,
+				EB84993E2326F7EA003D48CA /* FileAccessAuthorization.swift */,
 				EB8499422328319C003D48CA /* DeviceController.swift */,
-				EB8499442328DFFB003D48CA /* AuthorizedByteStream.swift */,
 				EB84993C23264100003D48CA /* WriteCommand.swift */,
 				EBD9DD5C232543E1000B6867 /* ListCommand.swift */,
 				EBD9DD5823251A7D000B6867 /* CommandProtocol.swift */,
 				EBD9DD5A23251B4C000B6867 /* Command.swift */,
 				EB849940232823B8003D48CA /* DiskInfo.swift */,
+				EB625030232B84EC0026BB04 /* FileHandleAPUE.swift */,
+				EB625032232B876C0026BB04 /* AuthOpen.swift */,
 			);
 			path = flasher;
 			sourceTree = "<group>";
@@ -123,6 +141,7 @@
 				TargetAttributes = {
 					EBD9DD4A2325081C000B6867 = {
 						CreatedOnToolsVersion = 11.0;
+						LastSwiftMigration = 1100;
 					};
 				};
 			};
@@ -153,12 +172,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				EBD9DD5B23251B4C000B6867 /* Command.swift in Sources */,
-				EB84993F2326F7EA003D48CA /* DeviceAccessAuthorization.swift in Sources */,
-				EB8499452328DFFB003D48CA /* AuthorizedByteStream.swift in Sources */,
+				EB84993F2326F7EA003D48CA /* FileAccessAuthorization.swift in Sources */,
 				EB84993D23264100003D48CA /* WriteCommand.swift in Sources */,
 				EBD9DD4F2325081C000B6867 /* main.swift in Sources */,
+				EB625033232B876C0026BB04 /* AuthOpen.swift in Sources */,
 				EBD9DD5923251A7D000B6867 /* CommandProtocol.swift in Sources */,
 				EB8499432328319C003D48CA /* DeviceController.swift in Sources */,
+				EB2AB2B02337783200C1FCD7 /* recv_fd.c in Sources */,
+				EB625031232B84EC0026BB04 /* FileHandleAPUE.swift in Sources */,
 				EBD9DD5D232543E1000B6867 /* ListCommand.swift in Sources */,
 				EB849941232823B8003D48CA /* DiskInfo.swift in Sources */,
 			);
@@ -283,10 +304,19 @@
 		EBD9DD532325081C000B6867 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = J33D8ZT4XT;
 				ENABLE_HARDENED_RUNTIME = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "flasher-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -294,10 +324,18 @@
 		EBD9DD542325081C000B6867 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = J33D8ZT4XT;
 				ENABLE_HARDENED_RUNTIME = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "flasher-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
