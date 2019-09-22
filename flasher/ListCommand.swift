@@ -24,7 +24,7 @@ struct ListCommand: CommandProtocol {
     }
 
     func run(with arguments: ArgumentParser.Result) throws {
-        let disks = try getDiskIds()
+        let disks = try DiskInfo.list(["external", "physical"])
         try disks.forEach({disk in
             let info = try DiskInfo(for: disk)
 
@@ -37,25 +37,4 @@ struct ListCommand: CommandProtocol {
         })
         stdoutStream.flush()
     }
-
-    private func getDiskIds() throws -> [String] {
-        let output = try Process.checkNonZeroExit(arguments: [
-            "/usr/sbin/diskutil", "list", "-plist", "external", "physical"
-        ])
-        let plist = output.propertyList()
-        guard let dict = plist as? [String:[Any]] else {
-            throw ListCommandError.plistTypeError(plist)
-        }
-        guard let disks = dict["AllDisksAndPartitions"] as? [[String:Any]] else {
-            throw ListCommandError.keyError("AllDisksAndPartitions")
-        }
-        return try disks.map({disk in
-            guard let id = disk["DeviceIdentifier"] as? String else {
-                throw ListCommandError.keyError("DeviceIdentifier")
-            }
-            return id
-        })
-    }
-
 }
-
