@@ -65,23 +65,34 @@ struct DeviceController {
             throw DeviceControllerError.tooSmall(disk, info.totalSize, fileSize)
         }
 
-        let size = 1024*1024
+        let chunksize = 1024*1024
         guard let inputFH = FileHandle(forReadingAtPath: image.pathString) else {
             throw DeviceControllerError.errno(errno)
         }
 
-        let auth = try DeviceAccessAuthorization(for: .writing(disk))
         let output = AbsolutePath("/dev/r" + disk)
-        let outputStream = try AuthorizedOutputByteStream(output, with: auth)
+        let outputFH = try AuthOpen(forWritingAtPath: output.pathString).fileHandle
 
         let startTime = Date()
         var copySoFar: Int64 = 0
-        var buffer = inputFH.readData(ofLength: size)
-        while buffer.count > 0 {
-            try outputStream.write(buffer)
-            buffer = inputFH.readData(ofLength: size)
+
+        let readQueue = DispatchQueue(label: "flasher_read_queue")
+        var buffer = Data()
+
+        readQueue.async {
+            buffer = inputFH.readData(ofLength: chunksize)
+        }
+
+        while readQueue.sync(execute: { return buffer.count > 0 }) {
+            let wrbuf = buffer
+
+            readQueue.async {
+                buffer = inputFH.readData(ofLength: chunksize)
+            }
+            outputFH.write(wrbuf)
+            copySoFar += Int64(wrbuf.count)
+
             let elapsedTime = DateInterval(start: startTime, end: Date())
-            copySoFar += Int64(buffer.count)
             let writeSpeed = Measurement<UnitInformationStorage>(value: Double(copySoFar)/elapsedTime.duration, unit: .bytes)
             let percent = Double(copySoFar) / Double(fileSize)
             let bar = String(repeating: "-", count: Int(percent * 50))

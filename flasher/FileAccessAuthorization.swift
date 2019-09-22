@@ -1,5 +1,5 @@
 //
-//  AuthorizeDeviceAccess.swift
+//  FileAccessAuthorization.swift
 //  flasher
 //
 //  Created by Calle Englund on 2019-09-09.
@@ -9,10 +9,10 @@
 import Foundation
 
 /// Wrapped OSStatus error code for Authorization* failures
-enum DeviceAuthorizationError: Error {
+enum FileAccessAuthorizationError: Error {
     case failure(OSStatus)
 }
-extension DeviceAuthorizationError: CustomStringConvertible {
+extension FileAccessAuthorizationError: CustomStringConvertible {
     public var description: String {
         switch self {
         case .failure(let status):
@@ -22,26 +22,51 @@ extension DeviceAuthorizationError: CustomStringConvertible {
 }
 
 /// Wrapped authorization item name for a device action
-enum AuthorizedDeviceAction: Equatable {
+enum AuthorizedFileAccess: Equatable {
+    typealias RawValue = (Int, String)
+
     case writing(String)
     case reading(String)
 }
-extension AuthorizedDeviceAction: CustomStringConvertible {
+extension AuthorizedFileAccess: CustomStringConvertible {
     public var description: String {
         switch self {
-        case .reading(let device):
-            return "sys.openfile.read./dev/r" + device
-        case .writing(let device):
-            return "sys.openfile.readwrite./dev/r" + device
+        case .reading(let path):
+            return "sys.openfile.read." + path
+        case .writing(let path):
+            return "sys.openfile.readwrite." + path
+        }
+    }
+}
+extension AuthorizedFileAccess {
+    init?(coder: NSCoder) {
+        let readonly = coder.decodeBool(forKey: "readonly")
+        let path = coder.decodeObject(forKey: "path") as! String
+
+        if readonly {
+            self = .reading(path)
+        } else {
+            self = .writing(path)
+        }
+    }
+
+    func encode(with coder: NSCoder) {
+        switch self {
+        case .reading(let path):
+            coder.encode(true, forKey: "readonly")
+            coder.encode(path, forKey: "path")
+        case .writing(let path):
+            coder.encode(true, forKey: "readonly")
+            coder.encode(path, forKey: "path")
         }
     }
 }
 
-final class DeviceAccessAuthorization {
-    let action: AuthorizedDeviceAction
+final class FileAccessAuthorization {
+    let action: AuthorizedFileAccess
     let authRef: AuthorizationRef
 
-    init(for action: AuthorizedDeviceAction) throws {
+    init(for action: AuthorizedFileAccess) throws {
         var authRef: AuthorizationRef?
         var items = [AuthorizationItem(name: String(describing: action),
                                        valueLength: 0, value: nil,
@@ -55,7 +80,7 @@ final class DeviceAccessAuthorization {
         let status = AuthorizationCreate(&rights, nil, flags, &authRef)
 
         if status != errAuthorizationSuccess {
-            throw DeviceAuthorizationError.failure(status)
+            throw FileAccessAuthorizationError.failure(status)
         }
 
         self.action = action
@@ -72,8 +97,17 @@ final class DeviceAccessAuthorization {
         let status = AuthorizationMakeExternalForm(authRef, &extAuthRef)
 
         if status != errAuthorizationSuccess {
-            throw DeviceAuthorizationError.failure(status)
+            throw FileAccessAuthorizationError.failure(status)
         }
         return extAuthRef
+    }
+}
+
+extension FileAccessAuthorization: NSCoding {
+    convenience init?(coder: NSCoder) {
+        try! self.init(for: AuthorizedFileAccess(coder: coder)!)
+    }
+
+    func encode(with coder: NSCoder) {
     }
 }
