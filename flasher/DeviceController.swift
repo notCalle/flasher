@@ -92,15 +92,26 @@ struct DeviceController {
             outputFH.write(wrbuf)
             copySoFar += Int64(wrbuf.count)
 
-            let elapsedTime = DateInterval(start: startTime, end: Date())
-            let writeSpeed = Measurement<UnitInformationStorage>(value: Double(copySoFar)/elapsedTime.duration, unit: .bytes)
             let percent = Double(copySoFar) / Double(fileSize)
             let bar = String(repeating: "-", count: Int(percent * 50))
             let filler = String(repeating: " ", count: 50)
+            let elapsedTime = DateInterval(start: startTime, end: Date())
 
             stderrStream <<< "\r[\(filler)]"
             stderrStream <<< " "
-            stderrStream <<< ByteCountFormatter().string(from: writeSpeed)
+            if #available(OSX 10.15, *) {
+                let writeSpeed = Measurement<UnitInformationStorage>(value: Double(copySoFar)/elapsedTime.duration, unit: .bytes)
+
+                stderrStream <<< ByteCountFormatter().string(from: writeSpeed)
+            } else {
+                let writeSpeed = Double(copySoFar)/elapsedTime.duration
+                let nf = NumberFormatter()
+
+                nf.numberStyle = .scientific
+                nf.maximumSignificantDigits = 3
+                stderrStream <<< nf.string(from: NSNumber(value: writeSpeed))!
+                stderrStream <<< " B"
+            }
             stderrStream <<< "/s   \r[\(bar)"
             stderrStream.flush()
         }
