@@ -17,6 +17,7 @@ enum DeviceControllerError: Error {
     case notWritable(String)
     case errno(errno_t)
     case tooSmall(String, Int64, Int64)
+    case verifyFailed
 }
 extension DeviceControllerError: CustomStringConvertible {
     public var description: String {
@@ -40,6 +41,8 @@ extension DeviceControllerError: CustomStringConvertible {
                                                       countStyle: .file)
 
             return "\(disk) is too small (\(diskSize)) for image (\(imageSize))"
+        case .verifyFailed:
+            return "verification failed"
         }
     }
 }
@@ -95,6 +98,59 @@ struct DeviceController {
             let elapsedTime = DateInterval(start: startTime, end: Date())
 
             progressBar(for: copySoFar, of: fileSize, in: elapsedTime.duration)
+        }
+        if #available(OSX 10.15, *) {
+            try outputFH.synchronize()
+        } else {
+            outputFH.synchronizeFile()
+        }
+
+        if verify { try self.verify(image: image, with: outputFH) }
+    }
+
+    public func verify(image: AbsolutePath, with outputFH: FileHandle?) throws {
+        let fileManager = FileManager()
+        let fileAttr = try fileManager.attributesOfItem(atPath: image.pathString)
+        let fileSize = fileAttr[.size] as! Int64
+        let chunksize = 1024*1024
+
+        guard let inputFH = FileHandle(forReadingAtPath: image.pathString) else {
+            throw DeviceControllerError.errno(errno)
+        }
+
+        let verify = AbsolutePath("/dev/r" + disk)
+        let verifyFH = try outputFH
+            ?? AuthOpen(forReadingAtPath: verify.pathString).fileHandle
+        verifyFH.seek(toFileOffset: 0)
+
+        let startTime = Date()
+        var verifySoFar: Int64 = 0
+
+        let readQueue = DispatchQueue(label: "flasher_read_queue")
+        var buffer = Data()
+
+        readQueue.async {
+            buffer = inputFH.readData(ofLength: chunksize)
+        }
+
+        while readQueue.sync(execute: { return buffer.count > 0 }) {
+            let rdbuf = buffer
+
+            readQueue.async {
+                buffer = inputFH.readData(ofLength: chunksize)
+            }
+            let vfbuf = verifyFH.readData(ofLength: rdbuf.count)
+            if !rdbuf.elementsEqual(vfbuf) {
+                stderrStream <<< "\n"
+                stderrStream.flush()
+                throw DeviceControllerError.verifyFailed
+            }
+            verifySoFar += Int64(rdbuf.count)
+
+            let elapsedTime = DateInterval(start: startTime, end: Date())
+
+            progressBar(for: verifySoFar, of: fileSize, in: elapsedTime.duration,
+                        done: "+", todo: "-")
         }
     }
 
