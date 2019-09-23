@@ -92,29 +92,26 @@ struct DeviceController {
             outputFH.write(wrbuf)
             copySoFar += Int64(wrbuf.count)
 
-            let percent = Double(copySoFar) / Double(fileSize)
-            let bar = String(repeating: "-", count: Int(percent * 50))
-            let filler = String(repeating: " ", count: 50)
             let elapsedTime = DateInterval(start: startTime, end: Date())
 
-            stderrStream <<< "\r[\(filler)]"
-            stderrStream <<< " "
-            if #available(OSX 10.15, *) {
-                let writeSpeed = Measurement<UnitInformationStorage>(value: Double(copySoFar)/elapsedTime.duration, unit: .bytes)
-
-                stderrStream <<< ByteCountFormatter().string(from: writeSpeed)
-            } else {
-                let writeSpeed = Double(copySoFar)/elapsedTime.duration
-                let nf = NumberFormatter()
-
-                nf.numberStyle = .scientific
-                nf.maximumSignificantDigits = 3
-                stderrStream <<< nf.string(from: NSNumber(value: writeSpeed))!
-                stderrStream <<< " B"
-            }
-            stderrStream <<< "/s   \r[\(bar)"
-            stderrStream.flush()
+            progressBar(for: copySoFar, of: fileSize, in: elapsedTime.duration)
         }
+    }
+
+    private func progressBar(for bytes: Int64, of total: Int64,
+                             in seconds: Double,
+                             done: String = "-",
+                             todo: String = " ")
+    {
+        let percent = Double(bytes) / Double(total)
+        let bar = String(repeating: done, count: Int(percent * 50))
+        let filler = String(repeating: todo, count: 50)
+        let writeSpeed = Int64(Double(bytes) / seconds)
+        let byteCount = ByteCountFormatter.string(fromByteCount: writeSpeed,
+                                                  countStyle: .file)
+
+        stderrStream <<< "\r[\(filler)] \(byteCount)/s   \r[\(bar)"
+        stderrStream.flush()
     }
 
     private func validate(forced: Bool) throws {
