@@ -37,9 +37,14 @@ public struct AuthOpen {
             return Data(bytes: $0, count: 32)
         })
         authPipe.fileHandleForWriting.write(authData)
-        try authPipe.fileHandleForWriting.close()
 
-        fileHandle = try fdSockets[0].receiveFileHandle(closeOnDealloc: false)
+        if #available(OSX 10.15, *) {
+            try authPipe.fileHandleForWriting.close()
+        } else {
+            authPipe.fileHandleForWriting.closeFile()
+        }
+
+        fileHandle = try fdSockets[0].receiveFileHandle()
     }
 
     // Helpers for writing
