@@ -57,6 +57,7 @@ struct DiskInfo {
         return VirtualOrPhysical(dict["VirtualOrPhysical"] as! String)
     }
     public var writable: Bool { return dict["Writable"] as! Bool }
+    public var writableMedia: Bool { return dict["WritableMedia"] as! Bool }
 
     public static func list(_ args: [String] = []) throws -> [String] {
         let output = try Process.checkNonZeroExit(arguments: [

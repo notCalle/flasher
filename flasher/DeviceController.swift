@@ -184,7 +184,7 @@ struct DeviceController {
             }
         }
 
-        if !info.writable {
+        if !info.writableMedia {
             throw DeviceControllerError.notWritable(disk)
         }
     }

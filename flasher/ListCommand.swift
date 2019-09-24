@@ -28,7 +28,7 @@ struct ListCommand: CommandProtocol {
         try disks.forEach({disk in
             let info = try DiskInfo(for: disk)
 
-            if !info.removable || !info.writable { return }
+            if !info.removable || !info.writableMedia { return }
 
             stdoutStream <<< disk <<< " \"" <<< info.mediaName <<< "\" ("
             stdoutStream <<< ByteCountFormatter.string(fromByteCount: info.totalSize,
