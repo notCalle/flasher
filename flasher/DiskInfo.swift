@@ -52,7 +52,7 @@ struct DiskInfo {
     public var `internal`: Bool { return dict["Internal"] as! Bool }
     public var mediaName: String { return dict["MediaName"] as! String }
     public var removable: Bool { return dict["Removable"] as! Bool }
-    public var totalSize: Int64 { return dict["TotalSize"] as! Int64 }
+    public var size: Int64 { return dict["Size"] as! Int64 }
     public var virtualOrPhysical: VirtualOrPhysical {
         return VirtualOrPhysical(dict["VirtualOrPhysical"] as! String)
     }

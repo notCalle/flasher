@@ -31,7 +31,7 @@ struct ListCommand: CommandProtocol {
             if !info.removable || !info.writableMedia { return }
 
             stdoutStream <<< disk <<< " \"" <<< info.mediaName <<< "\" ("
-            stdoutStream <<< ByteCountFormatter.string(fromByteCount: info.totalSize,
+            stdoutStream <<< ByteCountFormatter.string(fromByteCount: info.size,
                                                        countStyle: .file)
             stdoutStream <<< ")\n"
         })
