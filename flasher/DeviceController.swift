@@ -64,8 +64,8 @@ struct DeviceController {
         let fileAttr = try fileManager.attributesOfItem(atPath: image.pathString)
         let fileSize = fileAttr[.size] as! Int64
 
-        if info.totalSize < fileSize {
-            throw DeviceControllerError.tooSmall(disk, info.totalSize, fileSize)
+        if info.size < fileSize {
+            throw DeviceControllerError.tooSmall(disk, info.size, fileSize)
         }
 
         let chunksize = 1024*1024
