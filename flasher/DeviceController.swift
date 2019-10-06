@@ -13,7 +13,7 @@ enum DeviceControllerError: Error {
     case notImplemented
     case notExternal(String)
     case notPhysical(String)
-    case notRemovable(String)
+    case notSafe(String)
     case notWritable(String)
     case errno(errno_t)
     case tooSmall(String, Int64, Int64)
@@ -28,8 +28,8 @@ extension DeviceControllerError: CustomStringConvertible {
             return "\"" + disk + "\" is not external"
         case .notPhysical(let disk):
             return "\"" + disk + "\" is not physical"
-        case .notRemovable(let disk):
-            return "\"" + disk + "\" is not removable"
+        case .notSafe(let disk):
+            return "\"" + disk + "\" is not safe (force to override)"
         case .notWritable(let disk):
             return "\"" + disk + "\" is not writable"
         case.errno(let err):
@@ -176,8 +176,8 @@ struct DeviceController {
             if info.internal {
                 throw DeviceControllerError.notExternal(disk)
             }
-            if !info.removable {
-                throw DeviceControllerError.notRemovable(disk)
+            if !info.safe {
+                throw DeviceControllerError.notSafe(disk)
             }
             if info.virtualOrPhysical != .physical {
                 throw DeviceControllerError.notPhysical(disk)

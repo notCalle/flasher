@@ -48,6 +48,10 @@
 		EBD9DD5823251A7D000B6867 /* CommandProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandProtocol.swift; sourceTree = "<group>"; };
 		EBD9DD5A23251B4C000B6867 /* Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Command.swift; sourceTree = "<group>"; };
 		EBD9DD5C232543E1000B6867 /* ListCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListCommand.swift; sourceTree = "<group>"; };
+		EBDE8BE42349F152006AB55A /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile; sourceTree = SOURCE_ROOT; };
+		EBDE8BE52349F152006AB55A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
+		EBDE8BE62349F152006AB55A /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = SOURCE_ROOT; };
+		EBDE8BE72349F152006AB55A /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,6 +78,10 @@
 		EBD9DD422325081C000B6867 = {
 			isa = PBXGroup;
 			children = (
+				EBDE8BE72349F152006AB55A /* CHANGELOG.md */,
+				EBDE8BE62349F152006AB55A /* LICENSE */,
+				EBDE8BE42349F152006AB55A /* Makefile */,
+				EBDE8BE52349F152006AB55A /* README.md */,
 				EB2AB2B22337787A00C1FCD7 /* apue */,
 				EBD9DD4D2325081C000B6867 /* flasher */,
 				EBD9DD4C2325081C000B6867 /* Products */,
