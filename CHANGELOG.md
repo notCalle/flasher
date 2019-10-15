@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.2.2] - 2019-10-15
+
+This fixes issues with safe media detection.
+
+### Changed
+
+- Raises the media size safe-guard, allowing devices smaller than 256 GiB.
+
+### Fixed
+
+- `Internal` devices that are removable were incorrectly rejected.
+
+
 ## [1.2.1] - 2019-10-06
 
 This fixes issues with safe media detection.
@@ -54,7 +67,8 @@ This is the initial release of `flasher`, supporting macOS 10.15+ only.
 - `flasher write` command, to write an image to a device
 
 
-[Unreleased]: https://github.com/notCalle/flasher/compare/v1.2.1..HEAD
+[Unreleased]: https://github.com/notCalle/flasher/compare/v1.2.2..HEAD
+[1.2.2]: https://github.com/notCalle/flasher/compare/v1.2.1..v1.2.2
 [1.2.1]: https://github.com/notCalle/flasher/compare/v1.2.0..v1.2.1
 [1.2.0]: https://github.com/notCalle/flasher/compare/v1.1.0..v1.2.0
 [1.1.0]: https://github.com/notCalle/flasher/compare/v1.0.0..v1.1.0

@@ -173,9 +173,6 @@ struct DeviceController {
     private func validate(forced: Bool) throws {
         // Safeguard checks, ignored if forced
         if !forced {
-            if info.internal {
-                throw DeviceControllerError.notExternal(disk)
-            }
             if !info.safe {
                 throw DeviceControllerError.notSafe(disk)
             }
