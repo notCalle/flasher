@@ -24,7 +24,7 @@ struct ListCommand: CommandProtocol {
     }
 
     func run(with arguments: ArgumentParser.Result) throws {
-        let disks = try DiskInfo.list(["external", "physical"])
+        let disks = try DiskInfo.list(["physical"])
         try disks.forEach({disk in
             let info = try DiskInfo(for: disk)
 

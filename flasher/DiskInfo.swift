@@ -50,9 +50,10 @@ struct DiskInfo {
     }
 
     public var ejectable: Bool { return dict["Ejectable"] as! Bool }
-    public var `internal`: Bool { return dict["Internal"] as! Bool }
     public var mediaName: String { return dict["MediaName"] as! String }
-    public var removable: Bool { return dict["Removable"] as! Bool }
+    public var removableMediaOrExternalDevice: Bool {
+        return dict["RemovableMediaOrExternalDevice"] as! Bool
+    }
     public var size: Int64 { return dict["Size"] as! Int64 }
     public var virtualOrPhysical: VirtualOrPhysical {
         return VirtualOrPhysical(dict["VirtualOrPhysical"] as! String)
@@ -60,9 +61,8 @@ struct DiskInfo {
     public var writableMedia: Bool { return dict["WritableMedia"] as! Bool }
 
     public var safe: Bool {
-        return (removable || ejectable)
-            && !`internal`
-            && size < 64 * 1024*1024*1024 // GibiBytes
+        return (removableMediaOrExternalDevice || ejectable)
+            && size < 256 * 1024*1024*1024 // GibiBytes
     }
 
     public static func list(_ args: [String] = []) throws -> [String] {
