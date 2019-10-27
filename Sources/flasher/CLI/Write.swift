@@ -30,7 +30,11 @@ extension Flasher {
 
         mutating func run() throws {
             let controller = try DeviceController(for: device, force: force)
-            try controller.write(image: image, verify: verify)
+
+            var imageWriter = try ImageWriter(for: image)
+            imageWriter.verify = verify
+
+            try controller.write(using: imageWriter)
         }
     }
 }
