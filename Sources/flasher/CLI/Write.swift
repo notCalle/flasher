@@ -34,7 +34,7 @@ extension Flasher {
             var imageWriter = try ImageWriter(for: image)
             imageWriter.verify = verify
 
-            try controller.write(using: imageWriter)
+            try imageWriter.writeImage(using: controller)
         }
     }
 }

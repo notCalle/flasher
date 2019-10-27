@@ -52,11 +52,13 @@ extension DeviceControllerError: CustomStringConvertible {
 }
 
 /// Controller for disk device operations
-struct DeviceController {
+class DeviceController {
     private let stderr = FileHandle.standardError
 
     let disk: String
     let info: DiskInfo
+
+    private var _fileHandle: FileHandle?
 
     /// Initialize device controller
     ///
@@ -73,19 +75,40 @@ struct DeviceController {
         try umountDisk()
     }
 
-    /// Write image to target
-    ///
-    /// - Throws: `DeviceControllerError`
-    /// - Throws:
-    /// - Parameter image: path to image file
-    /// - Parameter verify: perform read verification after writing
-    public func write(using imageWriter: ImageWriter)
-        throws -> ()
-    {
-        let output = "/dev/r\(disk)"
-        let outputFileHandle = try AuthOpen(forWritingAtPath: output).fileHandle
+    private func fileHandle() throws -> FileHandle {
+        if _fileHandle == nil {
+            _fileHandle = try AuthOpen(forWritingAtPath: "/dev/r\(disk)").fileHandle
+        }
+        return _fileHandle!
+    }
 
-        try imageWriter.writeImage(to: outputFileHandle)
+    func write(_ data: Data) throws {
+        let blockSize = Int(info.deviceBlockSize)
+        let blockCount = (data.count - 1) / blockSize + 1
+        var buffer = Data(count: blockCount * blockSize)
+        buffer[0 ..< data.count] = data
+
+        try fileHandle().write(buffer)
+    }
+
+    func blocks(ofSize blockSize: Int) throws -> PrefetchingBlockReader {
+        return try fileHandle().blocks(ofSize: blockSize)
+    }
+
+    func synchronize() throws {
+        if #available(OSX 10.15, *) {
+            try fileHandle().synchronize()
+        } else {
+            try fileHandle().synchronizeFile()
+        }
+    }
+
+    func rewind() throws {
+        if #available(OSX 10.15, *) {
+            try fileHandle().seek(toOffset: 0)
+        } else {
+            try fileHandle().seek(toFileOffset: 0)
+        }
     }
 
     private func validate(forced: Bool) throws {

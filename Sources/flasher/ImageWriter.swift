@@ -16,7 +16,7 @@ struct ImageWriter {
 
     private let stderr = FileHandle.standardError
 
-    private let chunksize = 1024*1024
+    private let chunkSize = 128*1024
     private let fileHandle: FileHandle
     private let imageSize: UInt64
     private var writtenSize: UInt64 = 0
@@ -34,41 +34,33 @@ struct ImageWriter {
 
     /// Write the image to a target file handle
     /// - Parameter target: file handle to write image to
-    func writeImage(to target: FileHandle) throws {
+    func writeImage(using target: DeviceController) throws {
         let startTime = Date()
-        let startOffset = target.offsetInFile
 
         if decompress {
             throw DeviceControllerError.notImplemented("decompression");
         }
 
-        eachChunk { writeBuffer in
-            target.write(writeBuffer)
+        defer {
+            stderr <<< "\n"
+            try? stderr.synchronize()
+        }
+
+        for chunk in fileHandle.blocks(ofSize: chunkSize) {
+            try target.write(chunk)
             let elapsedTime = DateInterval(start: startTime, end: Date())
             progressBar(for: fileHandle.offsetInFile, of: imageSize,
                         in: elapsedTime.duration)
         }
 
-        if #available(OSX 10.15, *) {
-            try target.synchronize()
-        } else {
-            target.synchronizeFile()
-        }
+        try target.synchronize()
 
         if verify {
-            if #available(OSX 10.15, *) {
-                try target.seek(toOffset: startOffset)
-            } else {
-                target.seek(toFileOffset: startOffset)
-            }
-            try verifyImage(with: target)
+            try verifyImage(using: target)
         }
-
-        stderr <<< "\n"
-        try? stderr.synchronize()
     }
 
-    func verifyImage(with target: FileHandle) throws {
+    private func verifyImage(using target: DeviceController) throws {
         let startTime = Date()
 
         if #available(OSX 10.15, *) {
@@ -76,12 +68,13 @@ struct ImageWriter {
         } else {
             fileHandle.seek(toFileOffset: 0)
         }
+        try target.rewind()
 
-        try eachChunk { verifyBuffer in
-            let targetBuffer = target.readData(ofLength: verifyBuffer.count)
-            if !verifyBuffer.elementsEqual(targetBuffer) {
-                stderr <<< "\n"
-                try? stderr.synchronize()
+        let sourceBlocks = fileHandle.blocks(ofSize: chunkSize)
+        let targetBlocks = try target.blocks(ofSize: chunkSize)
+
+        for (source, target) in zip(sourceBlocks, targetBlocks) {
+            if !source.elementsEqual(target[0 ..< source.count]) {
                 throw DeviceControllerError.verifyFailed
             }
 
@@ -91,26 +84,6 @@ struct ImageWriter {
                         in: elapsedTime.duration,
                         done: "+", todo: "-")
         }
-    }
-
-    private func eachChunk(perform: (_ chunk: Data) throws -> ()) rethrows {
-        let globalQueue = DispatchQueue.global(qos: .userInitiated)
-        let readQueue = DispatchQueue(label: "Image read queue",
-                                      target: globalQueue)
-        var buffer: Data?
-
-        readQueue.async { buffer = self.readChunk() }
-
-        while readQueue.sync(execute: { buffer!.count > 0 }) {
-            let chunk = buffer!
-            readQueue.async { buffer = self.readChunk() }
-
-            try perform(chunk)
-        }
-    }
-
-    private func readChunk() -> Data {
-        return fileHandle.readData(ofLength: chunksize)
     }
 
     private func progressBar(for bytes: UInt64, of total: UInt64,

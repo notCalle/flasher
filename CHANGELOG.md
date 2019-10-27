@@ -10,7 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Refactored as a Swift package, and switch to using public dependencies, instead of abusing Swift Package Manager internals.
+- Refactored internal I/O responsibilities for improved async performance.
 
+### Fixed
+
+- Memory usage bloat by the size of the image file during the verification phase.
+- Crash when input file size was not a multiple of the output device block size.
 
 ## [1.2.2] - 2019-10-15
 
