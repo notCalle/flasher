@@ -7,9 +7,9 @@
 //
 
 import Foundation
-import Basic
 import SPMUtility
 
+/// Sub-command to write an image to a disk
 struct WriteCommand: CommandProtocol {
     let command = "write"
     let overview = "Write an image to a removable storage device"
@@ -17,7 +17,7 @@ struct WriteCommand: CommandProtocol {
     private let force: OptionArgument<Bool>
     private let verify: OptionArgument<Bool>
     private let device: PositionalArgument<String>
-    private let image: PositionalArgument<String>
+    private let image: PositionalArgument<PathArgument>
 
     init(parser: ArgumentParser) {
         let subparser = parser.add(subparser: command, overview: overview)
@@ -28,17 +28,15 @@ struct WriteCommand: CommandProtocol {
                                usage: "Verify image after writing")
         device = subparser.add(positional: "device", kind: String.self,
                                usage: "Storage device to write image to")
-        image = subparser.add(positional: "image", kind: String.self,
+        image = subparser.add(positional: "image", kind: PathArgument.self,
                               usage: "Image file to write to device")
     }
 
     public func run(with arguments: ArgumentParser.Result) throws {
         let controller = try DeviceController(for: arguments.get(device)!,
                                               force: arguments.get(force) ?? false)
-        let image_path = AbsolutePath(arguments.get(image)!,
-                                      relativeTo: localFileSystem.currentWorkingDirectory!)
 
-        try controller.write(image: image_path,
+        try controller.write(image: arguments.get(image)!.path,
                              verify: arguments.get(verify) ?? false)
     }
 }

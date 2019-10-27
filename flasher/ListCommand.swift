@@ -15,6 +15,7 @@ enum ListCommandError: Error {
     case keyError(String)
 }
 
+/// Sub-command to list available disks
 struct ListCommand: CommandProtocol {
     let command = "list"
     let overview = "Lists available storage devices"

@@ -9,6 +9,7 @@
 import Foundation
 import Basic
 
+/// Device Controller errors
 enum DeviceControllerError: Error {
     case notImplemented
     case notExternal(String)
@@ -47,10 +48,18 @@ extension DeviceControllerError: CustomStringConvertible {
     }
 }
 
+/// Controller for disk device operations
 struct DeviceController {
     let disk: String
     let info: DiskInfo
 
+    /// Initialize device controller
+    ///
+    /// The target disk is validated against some safety rules, unless forced.
+    ///
+    /// - Throws: `DeviceControllerError`
+    /// - Parameter device: target disk identifier
+    /// - Parameter force: allow unsafe targets
     init(for device: String, force: Bool = false) throws {
         disk = device
         info = try DiskInfo(for: disk)
@@ -59,6 +68,12 @@ struct DeviceController {
         try umountDisk()
     }
 
+    /// Write image to target
+    ///
+    /// - Throws: `DeviceControllerError`
+    /// - Throws:
+    /// - Parameter image: path to image file
+    /// - Parameter verify: perform read verification after writing
     public func write(image: AbsolutePath, verify: Bool = false) throws {
         let fileManager = FileManager()
         let fileAttr = try fileManager.attributesOfItem(atPath: image.pathString)
@@ -73,7 +88,7 @@ struct DeviceController {
             throw DeviceControllerError.errno(errno)
         }
 
-        let output = AbsolutePath("/dev/r" + disk)
+        let output = AbsolutePath("/dev/r\(disk)")
         let outputFH = try AuthOpen(forWritingAtPath: output.pathString).fileHandle
 
         let startTime = Date()
@@ -108,7 +123,18 @@ struct DeviceController {
         if verify { try self.verify(image: image, with: outputFH) }
     }
 
-    public func verify(image: AbsolutePath, with outputFH: FileHandle?) throws {
+    /// Verify that image was correctly written to target
+    ///
+    /// - Throws: `DeviceControllerError`
+    /// - Parameter image: path to image file
+    public func verify(image path: AbsolutePath) throws {
+        let fileHandle =
+            try AuthOpen(forReadingAtPath: "/dev/r\(disk)").fileHandle
+
+        try verify(image: path, with: fileHandle)
+    }
+
+    private func verify(image: AbsolutePath, with verifyFH: FileHandle) throws {
         let fileManager = FileManager()
         let fileAttr = try fileManager.attributesOfItem(atPath: image.pathString)
         let fileSize = fileAttr[.size] as! Int64
@@ -117,11 +143,6 @@ struct DeviceController {
         guard let inputFH = FileHandle(forReadingAtPath: image.pathString) else {
             throw DeviceControllerError.errno(errno)
         }
-
-        let verify = AbsolutePath("/dev/r" + disk)
-        let verifyFH = try outputFH
-            ?? AuthOpen(forReadingAtPath: verify.pathString).fileHandle
-        verifyFH.seek(toFileOffset: 0)
 
         let startTime = Date()
         var verifySoFar: Int64 = 0
@@ -133,6 +154,7 @@ struct DeviceController {
             buffer = inputFH.readData(ofLength: chunksize)
         }
 
+        verifyFH.seek(toFileOffset: 0)
         while readQueue.sync(execute: { return buffer.count > 0 }) {
             let rdbuf = buffer
 

@@ -38,34 +38,16 @@ extension AuthorizedFileAccess: CustomStringConvertible {
         }
     }
 }
-extension AuthorizedFileAccess {
-    init?(coder: NSCoder) {
-        let readonly = coder.decodeBool(forKey: "readonly")
-        let path = coder.decodeObject(forKey: "path") as! String
 
-        if readonly {
-            self = .reading(path)
-        } else {
-            self = .writing(path)
-        }
-    }
-
-    func encode(with coder: NSCoder) {
-        switch self {
-        case .reading(let path):
-            coder.encode(true, forKey: "readonly")
-            coder.encode(path, forKey: "path")
-        case .writing(let path):
-            coder.encode(true, forKey: "readonly")
-            coder.encode(path, forKey: "path")
-        }
-    }
-}
-
+/// Authorization for privileged access to a file
 final class FileAccessAuthorization {
     let action: AuthorizedFileAccess
     let authRef: AuthorizationRef
 
+    /// Request pre-authorization for privileged access to a file
+    ///
+    /// - See also: `AuthorizationCreate`
+    /// - Parameter action: file access to request authorization for
     init(for action: AuthorizedFileAccess) throws {
         var authRef: AuthorizationRef?
         var items = [AuthorizationItem(name: String(describing: action),
@@ -91,6 +73,8 @@ final class FileAccessAuthorization {
         AuthorizationFree(authRef, [.destroyRights])
     }
 
+    /// Get external form of authorization
+    /// - See Also: `AuthorizationExternalForm`
     func externalAuthorization() throws -> AuthorizationExternalForm
     {
         var extAuthRef = AuthorizationExternalForm()
@@ -100,14 +84,5 @@ final class FileAccessAuthorization {
             throw FileAccessAuthorizationError.failure(status)
         }
         return extAuthRef
-    }
-}
-
-extension FileAccessAuthorization: NSCoding {
-    convenience init?(coder: NSCoder) {
-        try! self.init(for: AuthorizedFileAccess(coder: coder)!)
-    }
-
-    func encode(with coder: NSCoder) {
     }
 }

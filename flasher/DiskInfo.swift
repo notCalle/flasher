@@ -38,9 +38,13 @@ extension VirtualOrPhysical: CustomStringConvertible {
     }
 }
 
+/// Information about a disk, as returned by `/usr/sbin/diskutil info -plist`
 struct DiskInfo {
     private let dict: [String:Any]
 
+    /// Obtain information about a disk
+    ///
+    /// - Parameter disk: disk identifier
     init(for disk: String) throws {
         let output = try Process.checkNonZeroExit(arguments: [
             "/usr/sbin/diskutil", "info", "-plist", disk
@@ -60,11 +64,15 @@ struct DiskInfo {
     }
     public var writableMedia: Bool { return dict["WritableMedia"] as! Bool }
 
+    /// Determine if a disk seems like a safe target for writing an image
     public var safe: Bool {
         return (removableMediaOrExternalDevice || ejectable)
             && size < 256 * 1024*1024*1024 // GibiBytes
     }
 
+    /// Get list of available disk identifiers
+    /// 
+    /// - Parameter args: extra arguments to `diskutil list`
     public static func list(_ args: [String] = []) throws -> [String] {
         let output = try Process.checkNonZeroExit(arguments: [
             "/usr/sbin/diskutil", "list", "-plist"

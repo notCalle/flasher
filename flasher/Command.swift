@@ -11,10 +11,10 @@ import Basic
 import SPMUtility
 
 public enum CommandError: Swift.Error {
-    // Incorrect command usage
+    /// Incorrect command usage
     case usage(ArgumentParser)
 
-    // Incorrect arguments
+    /// Incorrect arguments
     case arguments(ArgumentParserError)
 }
 
@@ -30,6 +30,7 @@ extension CommandError {
     }
 }
 
+/// Top level parser for the command itself
 struct Command {
     private var commands: [CommandProtocol] = []
     private let parser: ArgumentParser
@@ -38,10 +39,16 @@ struct Command {
         parser = ArgumentParser(usage: usage, overview: overview)
     }
 
+    /// Adds a sub-command parser to the command
+    ///
+    /// - Parameter command: sub command parser
     mutating func add(command: CommandProtocol.Type) {
         commands.append(command.init(parser: parser))
     }
 
+    /// Parse and execute command line
+    /// 
+    /// - Parameter arguments: command line arguments
     func run(with arguments: [String]) throws {
         do {
             try process(arguments)
