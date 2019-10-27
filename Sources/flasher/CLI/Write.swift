@@ -22,6 +22,9 @@ extension Flasher {
         @Flag(help: "Verify image after writing")
         var verify: Bool = false
 
+        @Flag(name: [.customShort("z"), .long], help: "Decompress image")
+        var decompress: Bool = false
+
         @Argument(help: "Storage device to write image to")
         var device: String
 
@@ -32,6 +35,7 @@ extension Flasher {
             let controller = try DeviceController(for: device, force: force)
 
             var imageWriter = try ImageWriter(for: image)
+			imageWriter.decompress = decompress
             imageWriter.verify = verify
 
             try imageWriter.writeImage(using: controller)

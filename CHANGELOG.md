@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Command line option to decompress an image while writing [FIXME: not yet implemented]
+
 
 ## [1.2.3] - 2021-06-12
 
