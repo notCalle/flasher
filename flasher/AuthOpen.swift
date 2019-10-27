@@ -9,11 +9,17 @@
 import Foundation
 import Basic
 
+/// Obtain authorization for privileged access to a file, calling out to `/usr/libexec/authopen`
+/// to get an open file handle.
 public struct AuthOpen {
-    let proc = Process()
+    /// `FileHandle` with privileged access authorization
     let fileHandle: FileHandle
 
-    init(with auth: FileAccessAuthorization) throws {
+    /// Initialize file handle with privileged access authorization
+    /// 
+    /// - Parameter auth: pre-authorization for privileged file access
+    private init(with auth: FileAccessAuthorization) throws {
+        let proc = Process()
         let authPipe = Pipe()
         let fdSockets = try FileHandle.socketPair()
 
@@ -47,28 +53,25 @@ public struct AuthOpen {
         fileHandle = try fdSockets[0].receiveFileHandle()
     }
 
-    // Helpers for writing
+    //MARK: Helpers for writing
+
+    /// Obtain authorization for writing to file at path
+    ///
+    /// - Parameter path: path to file for writing
     public init(forWritingAtPath path: String) throws {
         let auth = try FileAccessAuthorization(for: .writing(path))
 
         try self.init(with: auth)
     }
 
-    public init(forWritingTo url: URL) throws {
-        let path = url.absoluteString
-        try self.init(forWritingAtPath: path)
-    }
+    //MARK: Helpers for reading
 
-    // Helpers for reading
+    /// Obtain authorization for reading from file at path
+    ///
+    /// - Parameter path: path to file for reading
     public init(forReadingAtPath path: String) throws {
         let auth = try FileAccessAuthorization(for: .reading(path))
 
         try self.init(with: auth)
-    }
-
-    public init(forReadingFrom url: URL) throws {
-        let path = url.absoluteString
-
-        try self.init(forReadingAtPath: path)
     }
 }

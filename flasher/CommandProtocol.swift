@@ -8,10 +8,21 @@
 
 import SPMUtility
 
+/// Protocol for sub-command parsers
 protocol CommandProtocol {
     var command: String { get }
     var overview: String { get }
 
+    /// Initialize parser for sub-command
+    /// 
+    /// This should typically add a `subparser` to the parent `parser`
+    /// and initialize any argument parsers for the sub-command.
+    ///
+    /// - Parameter parser: parent parser
     init(parser: ArgumentParser)
+
+    /// Execute sub-command with parsed arguments
+    /// 
+    /// - Parameter arguments: parsed sub-command arguments
     func run(with arguments: ArgumentParser.Result) throws
 }

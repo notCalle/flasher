@@ -8,8 +8,9 @@
 
 import Foundation
 
-// Send / Receive FileHandles over a Pipe à la APUE
+/// Send / Receive FileHandles over a Pipe à la APUE
 extension FileHandle {
+    /// Get a socket pair as an `Array` of two `FileHandle`s
     public static func socketPair() throws -> [FileHandle] {
         var fds: [Int32] = [0,0]
         let status = socketpair(PF_LOCAL, SOCK_STREAM, 0, &fds)
@@ -19,6 +20,9 @@ extension FileHandle {
         return fds.map({ self.init(fileDescriptor: $0) })
     }
 
+    /// Receive a file handle over a socket
+    /// 
+    /// - Parameter cod: close file descriptor on dealloc (default true)
     public func receiveFileHandle(closeOnDealloc cod: Bool = true) throws -> FileHandle {
         let nfd = recv_fd(self.fileDescriptor)
         return type(of: self).init(fileDescriptor: nfd, closeOnDealloc: cod)

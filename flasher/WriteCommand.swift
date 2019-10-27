@@ -9,6 +9,7 @@
 import Foundation
 import SPMUtility
 
+/// Sub-command to write an image to a disk
 struct WriteCommand: CommandProtocol {
     let command = "write"
     let overview = "Write an image to a removable storage device"

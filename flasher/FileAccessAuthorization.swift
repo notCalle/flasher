@@ -39,10 +39,15 @@ extension AuthorizedFileAccess: CustomStringConvertible {
     }
 }
 
+/// Authorization for privileged access to a file
 final class FileAccessAuthorization {
     let action: AuthorizedFileAccess
     let authRef: AuthorizationRef
 
+    /// Request pre-authorization for privileged access to a file
+    ///
+    /// - See also: `AuthorizationCreate`
+    /// - Parameter action: file access to request authorization for
     init(for action: AuthorizedFileAccess) throws {
         var authRef: AuthorizationRef?
         var items = [AuthorizationItem(name: String(describing: action),
@@ -68,6 +73,8 @@ final class FileAccessAuthorization {
         AuthorizationFree(authRef, [.destroyRights])
     }
 
+    /// Get external form of authorization
+    /// - See Also: `AuthorizationExternalForm`
     func externalAuthorization() throws -> AuthorizationExternalForm
     {
         var extAuthRef = AuthorizationExternalForm()
