@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import Basic
+import Pathos
 
 /// Device Controller errors
 enum DeviceControllerError: Error {
@@ -19,6 +19,7 @@ enum DeviceControllerError: Error {
     case errno(errno_t)
     case tooSmall(String, Int64, Int64)
     case verifyFailed
+    case umountFailed
 }
 extension DeviceControllerError: CustomStringConvertible {
     public var description: String {
@@ -44,12 +45,16 @@ extension DeviceControllerError: CustomStringConvertible {
             return "\(disk) is too small (\(diskSize)) for image (\(imageSize))"
         case .verifyFailed:
             return "verification failed"
+        case .umountFailed:
+            return "unmount of target device failed"
         }
     }
 }
 
 /// Controller for disk device operations
 struct DeviceController {
+    private let stderr = FileHandle.standardError
+
     let disk: String
     let info: DiskInfo
 
@@ -74,9 +79,10 @@ struct DeviceController {
     /// - Throws:
     /// - Parameter image: path to image file
     /// - Parameter verify: perform read verification after writing
-    public func write(image: AbsolutePath, verify: Bool = false) throws {
+    public func write(image path: Path, verify: Bool = false) throws {
+        let image = String(describing: try path.absolute())
         let fileManager = FileManager()
-        let fileAttr = try fileManager.attributesOfItem(atPath: image.pathString)
+        let fileAttr = try fileManager.attributesOfItem(atPath: image)
         let fileSize = fileAttr[.size] as! Int64
 
         if info.size < fileSize {
@@ -84,12 +90,12 @@ struct DeviceController {
         }
 
         let chunksize = 1024*1024
-        guard let inputFH = FileHandle(forReadingAtPath: image.pathString) else {
+        guard let inputFH = FileHandle(forReadingAtPath: String(describing: image)) else {
             throw DeviceControllerError.errno(errno)
         }
 
-        let output = AbsolutePath("/dev/r\(disk)")
-        let outputFH = try AuthOpen(forWritingAtPath: output.pathString).fileHandle
+        let output = "/dev/r\(disk)"
+        let outputFH = try AuthOpen(forWritingAtPath: output).fileHandle
 
         let startTime = Date()
         var copySoFar: Int64 = 0
@@ -114,33 +120,30 @@ struct DeviceController {
 
             progressBar(for: copySoFar, of: fileSize, in: elapsedTime.duration)
         }
-        if #available(OSX 10.15, *) {
-            try outputFH.synchronize()
-        } else {
-            outputFH.synchronizeFile()
-        }
+        try outputFH.synchronize()
 
-        if verify { try self.verify(image: image, with: outputFH) }
+        if verify { try self.verify(image: path, with: outputFH) }
     }
 
     /// Verify that image was correctly written to target
     ///
     /// - Throws: `DeviceControllerError`
     /// - Parameter image: path to image file
-    public func verify(image path: AbsolutePath) throws {
+    public func verify(image path: Path) throws {
         let fileHandle =
             try AuthOpen(forReadingAtPath: "/dev/r\(disk)").fileHandle
 
         try verify(image: path, with: fileHandle)
     }
 
-    private func verify(image: AbsolutePath, with verifyFH: FileHandle) throws {
+    private func verify(image path: Path, with verifyFH: FileHandle) throws {
+        let image = String(describing: try path.absolute())
         let fileManager = FileManager()
-        let fileAttr = try fileManager.attributesOfItem(atPath: image.pathString)
+        let fileAttr = try fileManager.attributesOfItem(atPath: image)
         let fileSize = fileAttr[.size] as! Int64
         let chunksize = 1024*1024
 
-        guard let inputFH = FileHandle(forReadingAtPath: image.pathString) else {
+        guard let inputFH = FileHandle(forReadingAtPath: image) else {
             throw DeviceControllerError.errno(errno)
         }
 
@@ -163,8 +166,8 @@ struct DeviceController {
             }
             let vfbuf = verifyFH.readData(ofLength: rdbuf.count)
             if !rdbuf.elementsEqual(vfbuf) {
-                stderrStream <<< "\n"
-                stderrStream.flush()
+                stderr <<< "\n"
+                try? stderr.synchronize()
                 throw DeviceControllerError.verifyFailed
             }
             verifySoFar += Int64(rdbuf.count)
@@ -188,8 +191,8 @@ struct DeviceController {
         let byteCount = ByteCountFormatter.string(fromByteCount: writeSpeed,
                                                   countStyle: .file)
 
-        stderrStream <<< "\r[\(filler)] \(byteCount)/s   \r[\(bar)"
-        stderrStream.flush()
+        stderr <<< "\r[\(filler)] \(byteCount)/s   \r[\(bar)"
+        try? stderr.synchronize()
     }
 
     private func validate(forced: Bool) throws {
@@ -209,8 +212,9 @@ struct DeviceController {
     }
 
     private func umountDisk() throws {
-        try Process.checkNonZeroExit(arguments: [
-            "diskutil", "umountDisk", disk
-        ])
+        let process = Process.launchedProcess(launchPath: "/usr/sbin/diskutil",
+                                              arguments: ["umountDisk", disk])
+        process.waitUntilExit()
+        if process.terminationStatus != 0 { throw DeviceControllerError.umountFailed }
     }
 }

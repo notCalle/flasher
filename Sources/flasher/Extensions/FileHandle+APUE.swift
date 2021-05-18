@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import apue
 
 /// Send / Receive FileHandles over a Pipe à la APUE
 extension FileHandle {
