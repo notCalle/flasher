@@ -16,7 +16,7 @@ install: $(INSTALL_TARGET)
 $(BUILD_TARGET): release
 
 $(INSTALL_TARGET): $(BUILD_TARGET)
-	install -CSv $< $@
+	install -CSv $< $@ || sudo install -CSv $< $@
 
 .PHONY: clean
 clean:
