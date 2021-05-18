@@ -10,13 +10,14 @@ import Foundation
 
 /// Wrapped OSStatus error code for Authorization* failures
 enum FileAccessAuthorizationError: Error {
-    case failure(OSStatus)
+    case failure(OSStatus, AuthorizedFileAccess)
 }
 extension FileAccessAuthorizationError: CustomStringConvertible {
     public var description: String {
         switch self {
-        case .failure(let status):
-            return SecCopyErrorMessageString(status, nil)! as String
+        case .failure(let status, let action):
+            let sec_error = SecCopyErrorMessageString(status, nil)! as String
+            return "Authorizing access to \(action.prompt): \(sec_error)"
         }
     }
 }
@@ -27,12 +28,21 @@ enum AuthorizedFileAccess: Equatable {
 
     case writing(String)
     case reading(String)
+
+    public var prompt: String {
+        switch self {
+        case .reading(let path):
+            return "\(path) for reading"
+        case .writing(let path):
+            return "\(path) for writing"
+        }
+    }
 }
 extension AuthorizedFileAccess: CustomStringConvertible {
     public var description: String {
         switch self {
         case .reading(let path):
-            return "sys.openfile.read." + path
+            return "sys.openfile.readonly." + path
         case .writing(let path):
             return "sys.openfile.readwrite." + path
         }
@@ -50,11 +60,17 @@ final class FileAccessAuthorization {
     /// - Parameter action: file access to request authorization for
     init(for action: AuthorizedFileAccess) throws {
         var authRef: AuthorizationRef?
-        var items = [AuthorizationItem(name: String(describing: action),
-                                       valueLength: 0, value: nil,
-                                       flags: 0)]
-        var rights = AuthorizationRights(count: UInt32(items.count),
-                                         items: &items)
+        let items = [
+            String(describing: action).withCString() {
+                AuthorizationItem(name: $0, valueLength: 0, value: nil, flags: 0)
+            }
+        ]
+
+        var rights: AuthorizationRights = items.withUnsafeBufferPointer() {
+            AuthorizationRights(count: UInt32(items.count),
+                                items: UnsafeMutablePointer(mutating: $0.baseAddress))
+        }
+
         let flags: AuthorizationFlags = [.interactionAllowed,
                                          .extendRights,
                                          .preAuthorize]
@@ -62,7 +78,7 @@ final class FileAccessAuthorization {
         let status = AuthorizationCreate(&rights, nil, flags, &authRef)
 
         if status != errAuthorizationSuccess {
-            throw FileAccessAuthorizationError.failure(status)
+            throw FileAccessAuthorizationError.failure(status, action)
         }
 
         self.action = action
@@ -81,7 +97,7 @@ final class FileAccessAuthorization {
         let status = AuthorizationMakeExternalForm(authRef, &extAuthRef)
 
         if status != errAuthorizationSuccess {
-            throw FileAccessAuthorizationError.failure(status)
+            throw FileAccessAuthorizationError.failure(status, action)
         }
         return extAuthRef
     }
