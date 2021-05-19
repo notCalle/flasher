@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Refactored as a Swift package, and switch to using public dependencies, instead of abusing Swift Package Manager internals.
+
 
 ## [1.2.2] - 2019-10-15
 
