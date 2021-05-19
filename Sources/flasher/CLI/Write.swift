@@ -22,7 +22,7 @@ extension Flasher {
         @Flag(help: "Verify image after writing")
         var verify: Bool = false
 
-        @Argument(help: "Image file to write to device")
+        @Argument(help: "Storage device to write image to")
         var device: String
 
         @Argument(help: "Image file to write to device", completion: .file())
