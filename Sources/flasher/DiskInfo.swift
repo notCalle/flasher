@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Basic
 
 enum VirtualOrPhysical: Equatable {
     case physical
@@ -46,9 +45,8 @@ struct DiskInfo {
     ///
     /// - Parameter disk: disk identifier
     init(for disk: String) throws {
-        let output = try Process.checkNonZeroExit(arguments: [
-            "/usr/sbin/diskutil", "info", "-plist", disk
-        ])
+        let output = try Data(outputFrom: "/usr/sbin/diskutil",
+                          arguments: ["info", "-plist", disk])
         let plist = output.propertyList()
         dict = plist as! [String:Any]
     }
@@ -59,6 +57,7 @@ struct DiskInfo {
         return dict["RemovableMediaOrExternalDevice"] as! Bool
     }
     public var size: Int64 { return dict["Size"] as! Int64 }
+    public var deviceBlockSize: Int64 { return dict["DeviceBlockSize"] as! Int64 }
     public var virtualOrPhysical: VirtualOrPhysical {
         return VirtualOrPhysical(dict["VirtualOrPhysical"] as! String)
     }
@@ -74,10 +73,10 @@ struct DiskInfo {
     /// 
     /// - Parameter args: extra arguments to `diskutil list`
     public static func list(_ args: [String] = []) throws -> [String] {
-        let output = try Process.checkNonZeroExit(arguments: [
-            "/usr/sbin/diskutil", "list", "-plist"
-        ] + args)
+        let output = try Data(outputFrom: "/usr/sbin/diskutil",
+                              arguments: ["list", "-plist"] + args)
         let plist = output.propertyList()
+
         guard let dict = plist as? [String:[Any]] else {
             throw ListCommandError.plistTypeError(plist)
         }
@@ -91,5 +90,4 @@ struct DiskInfo {
             return id
         })
     }
-
 }

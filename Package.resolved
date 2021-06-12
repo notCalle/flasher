@@ -1,0 +1,25 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Pathos",
+        "repositoryURL": "https://github.com/dduan/Pathos.git",
+        "state": {
+          "branch": null,
+          "revision": "ba0a4c73ded94511b85c149311104c001c32d120",
+          "version": "0.4.0"
+        }
+      },
+      {
+        "package": "swift-argument-parser",
+        "repositoryURL": "https://github.com/apple/swift-argument-parser.git",
+        "state": {
+          "branch": null,
+          "revision": "9564d61b08a5335ae0a36f789a7d71493eacadfc",
+          "version": "0.3.2"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

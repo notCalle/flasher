@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Basic
 
 /// Obtain authorization for privileged access to a file, calling out to `/usr/libexec/authopen`
 /// to get an open file handle.
@@ -34,7 +33,7 @@ public struct AuthOpen {
         proc.standardInput = authPipe.fileHandleForReading
         proc.standardOutput = fdSockets[1]
         proc.standardError = FileHandle.standardError
-        proc.executableURL = AbsolutePath("/usr/libexec/authopen").asURL
+        proc.executableURL = URL(fileURLWithPath: "/usr/libexec/authopen")
         proc.arguments = args
         proc.launch()
 
@@ -44,11 +43,7 @@ public struct AuthOpen {
         })
         authPipe.fileHandleForWriting.write(authData)
 
-        if #available(OSX 10.15, *) {
-            try authPipe.fileHandleForWriting.close()
-        } else {
-            authPipe.fileHandleForWriting.closeFile()
-        }
+        try authPipe.fileHandleForWriting.close()
 
         fileHandle = try fdSockets[0].receiveFileHandle()
     }

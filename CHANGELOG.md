@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.2.3] - 2021-06-12
+
+### Changed
+
+- Refactored as a Swift package, and switch to using public dependencies, instead of abusing Swift Package Manager internals.
+- Refactored internal I/O responsibilities for improved async performance.
+
+### Fixed
+
+- Memory usage bloat by the size of the image file during the verification phase.
+- Crash when input file size was not a multiple of the output device block size.
+
 ## [1.2.2] - 2019-10-15
 
 This fixes issues with safe media detection.
@@ -67,9 +79,10 @@ This is the initial release of `flasher`, supporting macOS 10.15+ only.
 - `flasher write` command, to write an image to a device
 
 
-[Unreleased]: https://github.com/notCalle/flasher/compare/v1.2.2..HEAD
-[1.2.2]: https://github.com/notCalle/flasher/compare/v1.2.1..v1.2.2
-[1.2.1]: https://github.com/notCalle/flasher/compare/v1.2.0..v1.2.1
-[1.2.0]: https://github.com/notCalle/flasher/compare/v1.1.0..v1.2.0
-[1.1.0]: https://github.com/notCalle/flasher/compare/v1.0.0..v1.1.0
+[Unreleased]: https://github.com/notCalle/flasher/compare/v1.2.3...HEAD
+[1.2.3]: https://github.com/notCalle/flasher/compare/v1.2.2...v1.2.3
+[1.2.2]: https://github.com/notCalle/flasher/compare/v1.2.1...v1.2.2
+[1.2.1]: https://github.com/notCalle/flasher/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/notCalle/flasher/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/notCalle/flasher/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/notCalle/flasher/releases/tag/v1.0.0
