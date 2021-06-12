@@ -72,11 +72,12 @@ class DeviceController {
         info = try DiskInfo(for: disk)
 
         try validate(forced: force)
-        try umountDisk()
     }
 
     private func fileHandle() throws -> FileHandle {
         if _fileHandle == nil {
+            try umountDisk()
+
             _fileHandle = try AuthOpen(forWritingAtPath: "/dev/r\(disk)").fileHandle
             precondition(fcntl(_fileHandle!.fileDescriptor, F_NOCACHE, 1) != -1)
         }
