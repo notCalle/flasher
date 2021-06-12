@@ -30,6 +30,7 @@ struct ImageWriter {
 
         imageSize = fileAttr[.size] as! UInt64
         fileHandle = FileHandle(forReadingAtPath: imagePath)!
+        precondition(fcntl(fileHandle.fileDescriptor, F_NOCACHE, 1) != -1)
     }
 
     /// Write the image to a target file handle

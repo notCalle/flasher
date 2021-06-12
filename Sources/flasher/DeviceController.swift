@@ -78,6 +78,7 @@ class DeviceController {
     private func fileHandle() throws -> FileHandle {
         if _fileHandle == nil {
             _fileHandle = try AuthOpen(forWritingAtPath: "/dev/r\(disk)").fileHandle
+            precondition(fcntl(_fileHandle!.fileDescriptor, F_NOCACHE, 1) != -1)
         }
         return _fileHandle!
     }
