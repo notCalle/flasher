@@ -22,7 +22,7 @@ extension Flasher {
         @Flag(help: "Verify image after writing")
         var verify: Bool = false
 
-        @Argument(help: "Image file to write to device")
+        @Argument(help: "Storage device to write image to")
         var device: String
 
         @Argument(help: "Image file to write to device", completion: .file())
@@ -30,7 +30,11 @@ extension Flasher {
 
         mutating func run() throws {
             let controller = try DeviceController(for: device, force: force)
-            try controller.write(image: image, verify: verify)
+
+            var imageWriter = try ImageWriter(for: image)
+            imageWriter.verify = verify
+
+            try imageWriter.writeImage(using: controller)
         }
     }
 }

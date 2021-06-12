@@ -57,6 +57,7 @@ struct DiskInfo {
         return dict["RemovableMediaOrExternalDevice"] as! Bool
     }
     public var size: Int64 { return dict["Size"] as! Int64 }
+    public var deviceBlockSize: Int64 { return dict["DeviceBlockSize"] as! Int64 }
     public var virtualOrPhysical: VirtualOrPhysical {
         return VirtualOrPhysical(dict["VirtualOrPhysical"] as! String)
     }

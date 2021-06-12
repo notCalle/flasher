@@ -11,7 +11,7 @@ import Pathos
 
 /// Device Controller errors
 enum DeviceControllerError: Error {
-    case notImplemented
+    case notImplemented(String)
     case notExternal(String)
     case notPhysical(String)
     case notSafe(String)
@@ -24,8 +24,8 @@ enum DeviceControllerError: Error {
 extension DeviceControllerError: CustomStringConvertible {
     public var description: String {
         switch self {
-        case .notImplemented:
-            return "Not Implemented"
+        case .notImplemented(let what):
+            return "\(what) is not implemented"
         case .notExternal(let disk):
             return "\"" + disk + "\" is not external"
         case .notPhysical(let disk):
@@ -52,11 +52,13 @@ extension DeviceControllerError: CustomStringConvertible {
 }
 
 /// Controller for disk device operations
-struct DeviceController {
+class DeviceController {
     private let stderr = FileHandle.standardError
 
     let disk: String
     let info: DiskInfo
+
+    private var _fileHandle: FileHandle?
 
     /// Initialize device controller
     ///
@@ -70,129 +72,45 @@ struct DeviceController {
         info = try DiskInfo(for: disk)
 
         try validate(forced: force)
-        try umountDisk()
     }
 
-    /// Write image to target
-    ///
-    /// - Throws: `DeviceControllerError`
-    /// - Throws:
-    /// - Parameter image: path to image file
-    /// - Parameter verify: perform read verification after writing
-    public func write(image path: Path, verify: Bool = false) throws {
-        let image = String(describing: try path.absolute())
-        let fileManager = FileManager()
-        let fileAttr = try fileManager.attributesOfItem(atPath: image)
-        let fileSize = fileAttr[.size] as! Int64
+    private func fileHandle() throws -> FileHandle {
+        if _fileHandle == nil {
+            try umountDisk()
 
-        if info.size < fileSize {
-            throw DeviceControllerError.tooSmall(disk, info.size, fileSize)
+            _fileHandle = try AuthOpen(forWritingAtPath: "/dev/r\(disk)").fileHandle
+            precondition(fcntl(_fileHandle!.fileDescriptor, F_NOCACHE, 1) != -1)
         }
-
-        let chunksize = 1024*1024
-        guard let inputFH = FileHandle(forReadingAtPath: String(describing: image)) else {
-            throw DeviceControllerError.errno(errno)
-        }
-
-        let output = "/dev/r\(disk)"
-        let outputFH = try AuthOpen(forWritingAtPath: output).fileHandle
-
-        let startTime = Date()
-        var copySoFar: Int64 = 0
-
-        let readQueue = DispatchQueue(label: "flasher_read_queue")
-        var buffer = Data()
-
-        readQueue.async {
-            buffer = inputFH.readData(ofLength: chunksize)
-        }
-
-        while readQueue.sync(execute: { return buffer.count > 0 }) {
-            let wrbuf = buffer
-
-            readQueue.async {
-                buffer = inputFH.readData(ofLength: chunksize)
-            }
-            outputFH.write(wrbuf)
-            copySoFar += Int64(wrbuf.count)
-
-            let elapsedTime = DateInterval(start: startTime, end: Date())
-
-            progressBar(for: copySoFar, of: fileSize, in: elapsedTime.duration)
-        }
-        try outputFH.synchronize()
-
-        if verify { try self.verify(image: path, with: outputFH) }
+        return _fileHandle!
     }
 
-    /// Verify that image was correctly written to target
-    ///
-    /// - Throws: `DeviceControllerError`
-    /// - Parameter image: path to image file
-    public func verify(image path: Path) throws {
-        let fileHandle =
-            try AuthOpen(forReadingAtPath: "/dev/r\(disk)").fileHandle
+    func write(_ data: Data) throws {
+        let blockSize = Int(info.deviceBlockSize)
+        let blockCount = (data.count - 1) / blockSize + 1
+        var buffer = Data(count: blockCount * blockSize)
+        buffer[0 ..< data.count] = data
 
-        try verify(image: path, with: fileHandle)
+        try fileHandle().write(buffer)
     }
 
-    private func verify(image path: Path, with verifyFH: FileHandle) throws {
-        let image = String(describing: try path.absolute())
-        let fileManager = FileManager()
-        let fileAttr = try fileManager.attributesOfItem(atPath: image)
-        let fileSize = fileAttr[.size] as! Int64
-        let chunksize = 1024*1024
+    func blocks(ofSize blockSize: Int) throws -> PrefetchingBlockReader {
+        return try fileHandle().blocks(ofSize: blockSize)
+    }
 
-        guard let inputFH = FileHandle(forReadingAtPath: image) else {
-            throw DeviceControllerError.errno(errno)
-        }
-
-        let startTime = Date()
-        var verifySoFar: Int64 = 0
-
-        let readQueue = DispatchQueue(label: "flasher_read_queue")
-        var buffer = Data()
-
-        readQueue.async {
-            buffer = inputFH.readData(ofLength: chunksize)
-        }
-
-        verifyFH.seek(toFileOffset: 0)
-        while readQueue.sync(execute: { return buffer.count > 0 }) {
-            let rdbuf = buffer
-
-            readQueue.async {
-                buffer = inputFH.readData(ofLength: chunksize)
-            }
-            let vfbuf = verifyFH.readData(ofLength: rdbuf.count)
-            if !rdbuf.elementsEqual(vfbuf) {
-                stderr <<< "\n"
-                try? stderr.synchronize()
-                throw DeviceControllerError.verifyFailed
-            }
-            verifySoFar += Int64(rdbuf.count)
-
-            let elapsedTime = DateInterval(start: startTime, end: Date())
-
-            progressBar(for: verifySoFar, of: fileSize, in: elapsedTime.duration,
-                        done: "+", todo: "-")
+    func synchronize() throws {
+        if #available(OSX 10.15, *) {
+            try fileHandle().synchronize()
+        } else {
+            try fileHandle().synchronizeFile()
         }
     }
 
-    private func progressBar(for bytes: Int64, of total: Int64,
-                             in seconds: Double,
-                             done: String = "-",
-                             todo: String = " ")
-    {
-        let percent = Double(bytes) / Double(total)
-        let bar = String(repeating: done, count: Int(percent * 50))
-        let filler = String(repeating: todo, count: 50)
-        let writeSpeed = Int64(Double(bytes) / seconds)
-        let byteCount = ByteCountFormatter.string(fromByteCount: writeSpeed,
-                                                  countStyle: .file)
-
-        stderr <<< "\r[\(filler)] \(byteCount)/s   \r[\(bar)"
-        try? stderr.synchronize()
+    func rewind() throws {
+        if #available(OSX 10.15, *) {
+            try fileHandle().seek(toOffset: 0)
+        } else {
+            try fileHandle().seek(toFileOffset: 0)
+        }
     }
 
     private func validate(forced: Bool) throws {
